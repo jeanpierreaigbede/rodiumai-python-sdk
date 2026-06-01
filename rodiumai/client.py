@@ -9,7 +9,7 @@ from .logger import RodiumAILogger
 from .resources import Audio, Chat, Embeddings, Images, Video
 from .usage import UsageStats
 
-_API_KEY_PATTERN = re.compile(r"^rdk-")
+_API_KEY_PATTERN = re.compile(r"^[A-Za-z0-9@._-]+$")
 
 
 class RodiumAI:
@@ -30,7 +30,7 @@ class RodiumAI:
             self._logger = RodiumAILogger(log_level=log_level)
             self._logger.log_alert(
                 "invalid_api_key_format",
-                "API key format is invalid. Expected format: rdk-...",
+                "API key format is invalid. Expected format: rdk-... or alphanumeric token",
                 sdk_version=VERSION,
             )
 

@@ -18,8 +18,8 @@ class TestSecurity:
         assert "rdk-my-secret-key" not in captured.err
 
     def test_http_rejected_https_accepted(self):
-        with RodiumAI(api_key="rdk-test", base_url="https://api.rodiumai.io/v1"):
-            pass
+        client = RodiumAI(api_key="rdk-test", base_url="https://api.rodiumai.io/v1")
+        assert client is not None
 
     def test_http_url_raises_error(self):
         import pytest

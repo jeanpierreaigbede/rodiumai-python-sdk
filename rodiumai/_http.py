@@ -98,6 +98,16 @@ class AsyncHTTPClient:
                         return response.status_code, data, resp_request_id, None
 
                     error = map_http_status(response.status_code, resp_request_id)
+                    backend_msg = None
+                    if isinstance(data, dict):
+                        err_data = data.get("error")
+                        if isinstance(err_data, dict):
+                            backend_msg = err_data.get("message")
+                        elif isinstance(err_data, str):
+                            backend_msg = err_data
+                    if backend_msg:
+                        error.message = f"{error.message} - {backend_msg}"
+
                     if response.status_code == 429:
                         retry_after_str = response.headers.get("Retry-After", "1")
                         try:

@@ -140,6 +140,8 @@ class Completions:
             "POST", "/chat/completions", json_body=body, timeout=timeout
         ):
             choices_data = chunk_data.get("choices", [])
+            if not choices_data:
+                continue
             choices = []
             for c in choices_data:
                 delta_data = c.get("delta", {})
