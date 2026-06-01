@@ -1,0 +1,2 @@
+VERSION = "0.1.0"
+SDK_IDENTIFIER = "python/0.1.0"
