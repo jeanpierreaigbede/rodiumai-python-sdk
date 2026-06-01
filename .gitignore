@@ -30,6 +30,10 @@ coverage.xml
 .DS_Store
 Thumbs.db
 
+# Tests
+tests/
+test_reel.py
+
 # Pip
 pip-log.txt
 pip-delete-failed-directory
