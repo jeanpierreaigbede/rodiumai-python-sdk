@@ -33,8 +33,8 @@ dependencies = [
 [project.urls]
 Homepage = "https://rodiumai.io"
 Documentation = "https://docs.rodiumai.io"
-Source = "https://github.com/jeanpierreaigbede/rodiumai-python"
-Issues = "https://github.com/jeanpierreaigbede/rodiumai-python/issues"
+Source = "https://github.com/jeanpierreaigbede/rodiumai-python-sdk"
+Issues = "https://github.com/jeanpierreaigbede/rodiumai-python-sdk/issues"
 
 [project.optional-dependencies]
 dev = [
