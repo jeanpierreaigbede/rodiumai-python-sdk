@@ -26,7 +26,7 @@ class RodiumAI:
         resolved_key = api_key or os.environ.get("RODIUMAI_API_KEY", "")
 
         if not resolved_key or not resolved_key.strip():
-            raise ValueError("API key must not be empty. Provide a valid RodiumAI API key.")
+            raise InvalidAPIKeyError()
 
         # Reject header injection characters
         if "\r" in resolved_key or "\n" in resolved_key or "\x00" in resolved_key:
