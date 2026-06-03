@@ -2,9 +2,10 @@ name: Python SDK
 
 on:
   push:
-    branches: [main, develop]
+    branches: [main, before-develop]
+    tags: ["v*"]
   pull_request:
-    branches: [main, develop]
+    branches: [main, before-develop]
 
 jobs:
   test:
@@ -54,13 +55,13 @@ jobs:
           pip install -e ".[dev]"
 
       - name: flake8
-        run: flake8 rodiumai/ tests/
+        run: flake8 rodiumai/
 
       - name: black
-        run: black --check --diff rodiumai/ tests/
+        run: black --check --diff rodiumai/
 
       - name: isort
-        run: isort --check-only --diff rodiumai/ tests/
+        run: isort --check-only --diff rodiumai/
 
       - name: mypy
         run: mypy rodiumai/
@@ -80,14 +81,17 @@ jobs:
           pip install --upgrade pip
           pip install -e ".[dev]"
 
-      - name: bandit
-        run: bandit -r rodiumai/
+      - name: bandit — static security analysis
+        run: bandit -r rodiumai/ -ll
 
-      - name: pip-audit
+      - name: pip-audit — dependency vulnerabilities
         run: pip-audit
 
+      - name: Run security tests
+        run: pytest tests/unit/test_security.py -v
+
   publish:
-    if: startsWith(github.ref, 'refs/tags/v')
+    if: startsWith(github.ref, 'refs/tags/v') && github.ref_name == 'main' || startsWith(github.ref, 'refs/tags/v')
     needs: [test, lint, security]
     runs-on: ubuntu-latest
     permissions:

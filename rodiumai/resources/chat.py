@@ -85,6 +85,8 @@ class Completions:
                 raise ValueError("temperature must be between 0 and 2")
             body["temperature"] = temperature
         if max_tokens is not None:
+            if max_tokens <= 0:
+                raise ValueError("max_tokens must be greater than 0")
             body["max_tokens"] = max_tokens
         if top_p is not None:
             body["top_p"] = top_p
