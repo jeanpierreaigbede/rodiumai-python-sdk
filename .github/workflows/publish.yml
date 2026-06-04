@@ -32,8 +32,19 @@ jobs:
         with:
           password: ${{ secrets.PYPI_API_TOKEN }}
 
+      - name: Tag and release
+        id: tag_release
+        run: |
+          VERSION="v$(python -c "from rodiumai._version import VERSION; print(VERSION)")"
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          git config user.name "RodiumAI CI"
+          git config user.email "dev@rodiumai.io"
+          git tag "$VERSION"
+          git push origin "$VERSION"
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
         with:
+          tag_name: ${{ steps.tag_release.outputs.version }}
           body_path: CHANGELOG.md
           files: dist/*
