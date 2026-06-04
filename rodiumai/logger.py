@@ -46,26 +46,30 @@ class RodiumAILogger:
         self._logger.addHandler(handler)
         self._logger.propagate = False
 
-    def _log(self, level: int, message: str, **props: Any):
+    def _log(self, level: int, message: str, **props: Any) -> None:
         if self._logger.isEnabledFor(level):
             record = self._logger.makeRecord(
                 self._logger.name,
                 level,
-                "", 0, message, (), None,
+                "",
+                0,
+                message,
+                (),
+                None,
             )
             record.props = props
             self._logger.handle(record)
 
-    def debug(self, message: str, **props: Any):
+    def debug(self, message: str, **props: Any) -> None:
         self._log(logging.DEBUG, message, **props)
 
-    def info(self, message: str, **props: Any):
+    def info(self, message: str, **props: Any) -> None:
         self._log(logging.INFO, message, **props)
 
-    def warning(self, message: str, **props: Any):
+    def warning(self, message: str, **props: Any) -> None:
         self._log(logging.WARNING, message, **props)
 
-    def error(self, message: str, **props: Any):
+    def error(self, message: str, **props: Any) -> None:
         self._log(logging.ERROR, message, **props)
 
     def log_request(
@@ -77,11 +81,11 @@ class RodiumAILogger:
         latency_ms: float,
         status: str,
         http_status: int,
-        tokens: Optional[dict] = None,
+        tokens: Optional[dict[str, Any]] = None,
         retry_count: int = 0,
         streaming: bool = False,
         error_code: Optional[str] = None,
-    ):
+    ) -> None:
         self.info(
             f"{method} {endpoint} -> {http_status}",
             request_id=request_id,
@@ -98,5 +102,5 @@ class RodiumAILogger:
             streaming=streaming,
         )
 
-    def log_alert(self, alert_type: str, message: str, **props: Any):
+    def log_alert(self, alert_type: str, message: str, **props: Any) -> None:
         self.warning(f"ALERT [{alert_type}]: {message}", alert_type=alert_type, **props)

@@ -115,14 +115,16 @@ class Completions:
         choices = []
         for c in choices_data:
             msg = c.get("message", {})
-            choices.append(Choice(
-                index=c.get("index", 0),
-                message=Message(
-                    role=msg.get("role", ""),
-                    content=msg.get("content"),
-                ),
-                finish_reason=c.get("finish_reason"),
-            ))
+            choices.append(
+                Choice(
+                    index=c.get("index", 0),
+                    message=Message(
+                        role=msg.get("role", ""),
+                        content=msg.get("content"),
+                    ),
+                    finish_reason=c.get("finish_reason"),
+                )
+            )
 
         return ChatCompletion(
             id=data.get("id", ""),
@@ -147,14 +149,16 @@ class Completions:
             choices = []
             for c in choices_data:
                 delta_data = c.get("delta", {})
-                choices.append(ChunkChoice(
-                    index=c.get("index", 0),
-                    delta=Delta(
-                        role=delta_data.get("role"),
-                        content=delta_data.get("content"),
-                    ),
-                    finish_reason=c.get("finish_reason"),
-                ))
+                choices.append(
+                    ChunkChoice(
+                        index=c.get("index", 0),
+                        delta=Delta(
+                            role=delta_data.get("role"),
+                            content=delta_data.get("content"),
+                        ),
+                        finish_reason=c.get("finish_reason"),
+                    )
+                )
             yield ChatCompletionChunk(
                 id=chunk_data.get("id", ""),
                 object=chunk_data.get("object", "chat.completion.chunk"),

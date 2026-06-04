@@ -49,11 +49,13 @@ class Embeddings:
 
         embeddings_list = []
         for item in data.get("data", []):
-            embeddings_list.append(Embedding(
-                object=item.get("object", "embedding"),
-                index=item.get("index", 0),
-                embedding=item.get("embedding", []),
-            ))
+            embeddings_list.append(
+                Embedding(
+                    object=item.get("object", "embedding"),
+                    index=item.get("index", 0),
+                    embedding=item.get("embedding", []),
+                )
+            )
 
         usage_data = data.get("usage")
         usage = None

@@ -47,10 +47,12 @@ class Images:
 
         images = []
         for item in data.get("data", []):
-            images.append(ImageData(
-                url=item.get("url"),
-                b64_json=item.get("b64_json"),
-            ))
+            images.append(
+                ImageData(
+                    url=item.get("url"),
+                    b64_json=item.get("b64_json"),
+                )
+            )
 
         return ImagesResponse(
             created=data.get("created", 0),

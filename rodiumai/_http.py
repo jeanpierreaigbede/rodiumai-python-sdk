@@ -1,6 +1,5 @@
 import asyncio
 import random
-import time
 import uuid
 from typing import Any, AsyncIterator, Dict, Optional, Tuple
 
@@ -65,11 +64,11 @@ class AsyncHTTPClient:
         self,
         method: str,
         path: str,
-        json_body: Optional[Dict] = None,
-        files: Optional[Dict] = None,
+        json_body: Optional[Dict[str, Any]] = None,
+        files: Optional[Dict[str, Any]] = None,
         timeout: Optional[float] = None,
         stream: bool = False,
-    ) -> Tuple[int, Dict[str, Any], Optional[str], Optional[str]]:
+    ) -> Tuple[int, Dict[str, Any], Optional[str], Optional[RodiumAIError]]:
         url = f"{self._base_url}{path}"
         headers = self._get_headers()
         request_id = self._get_request_id()
@@ -89,9 +88,10 @@ class AsyncHTTPClient:
                 ) as response:
                     resp_request_id = response.headers.get("X-Request-ID", request_id)
                     body = await response.aread()
-                    data: Dict = {}
+                    data: Dict[str, Any] = {}
                     if body:
                         import json as _json
+
                         data = _json.loads(body) if body else {}
 
                     if response.status_code < 400:
@@ -148,7 +148,7 @@ class AsyncHTTPClient:
         self,
         method: str,
         path: str,
-        json_body: Optional[Dict] = None,
+        json_body: Optional[Dict[str, Any]] = None,
         timeout: Optional[float] = None,
     ) -> AsyncIterator[Dict[str, Any]]:
         url = f"{self._base_url}{path}"
@@ -165,9 +165,6 @@ class AsyncHTTPClient:
                 request_id = response.headers.get("X-Request-ID", self._get_request_id())
 
                 if response.status_code >= 400:
-                    body = await response.aread()
-                    import json as _json
-                    data = _json.loads(body) if body else {}
                     error = map_http_status(response.status_code, request_id)
                     raise error
 
@@ -178,9 +175,10 @@ class AsyncHTTPClient:
                             return
                         if payload:
                             import json as _json
+
                             yield _json.loads(payload)
 
-    def _get_usage_from_response(self, data: Dict) -> Optional[Dict[str, int]]:
+    def _get_usage_from_response(self, data: Dict[str, Any]) -> Optional[Dict[str, int]]:
         usage = data.get("usage")
         if usage and isinstance(usage, dict):
             return {

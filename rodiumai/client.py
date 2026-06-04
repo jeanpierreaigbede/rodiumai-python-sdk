@@ -74,7 +74,7 @@ class RodiumAI:
     def logger(self) -> RodiumAILogger:
         return self._logger
 
-    def _get_headers(self) -> dict:
+    def _get_headers(self) -> dict[str, str]:
         return {
             "Authorization": f"Bearer {self._api_key}",
             "X-RodiumAI-SDK": SDK_IDENTIFIER,
