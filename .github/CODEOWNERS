@@ -1,0 +1,12 @@
+* @jeanpierreaigbede @Docteur-Parfait
+
+# Core SDK code
+rodiumai/ @jeanpierreaigbede @Docteur-Parfait
+
+# CI/CD and release automation
+.github/ @jeanpierreaigbede @Docteur-Parfait
+
+# Packaging and project metadata
+pyproject.toml @jeanpierreaigbede @Docteur-Parfait
+README.md @jeanpierreaigbede @Docteur-Parfait
+LICENSE @jeanpierreaigbede @Docteur-Parfait
