@@ -142,7 +142,7 @@ class AsyncHTTPClient:
                     continue
                 raise NetworkError(str(e)) from e
 
-        raise last_error or RodiumAIError("Request failed after retries")
+        raise last_error or RodiumAIError("Request failed after retries")  # pragma: no cover
 
     async def _stream(
         self,

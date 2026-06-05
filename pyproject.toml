@@ -54,7 +54,7 @@ branch = true
 source = ["rodiumai"]
 
 [tool.coverage.report]
-fail_under = 97
+fail_under = 98.5
 skip_covered = true
 show_missing = true
 
