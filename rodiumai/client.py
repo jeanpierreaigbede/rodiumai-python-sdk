@@ -10,6 +10,7 @@ from .resources import Audio, Chat, Embeddings, Images, Video
 from .usage import UsageStats
 
 _API_KEY_PATTERN = re.compile(r"^[A-Za-z0-9@._-]+$")
+_MAX_RETRIES_LIMIT = 5
 
 
 class RodiumAI:
@@ -22,11 +23,16 @@ class RodiumAI:
         max_retries: int = 3,
         log_level: Optional[str] = None,
     ):
-        self._api_key = api_key or os.environ.get("RODIUMAI_API_KEY", "")
-        if not self._api_key:
+        resolved_key = api_key or os.environ.get("RODIUMAI_API_KEY", "")
+
+        if not resolved_key or not resolved_key.strip():
             raise InvalidAPIKeyError()
 
-        if not _API_KEY_PATTERN.match(self._api_key):
+        # Reject header injection characters
+        if "\r" in resolved_key or "\n" in resolved_key or "\x00" in resolved_key:
+            raise ValueError("API key contains invalid characters.")
+
+        if not _API_KEY_PATTERN.match(resolved_key):
             self._logger = RodiumAILogger(log_level=log_level)
             self._logger.log_alert(
                 "invalid_api_key_format",
@@ -34,10 +40,14 @@ class RodiumAI:
                 sdk_version=VERSION,
             )
 
+        # Cap max_retries to prevent DoS-style abuse
+        safe_retries = min(max_retries, _MAX_RETRIES_LIMIT)
+
+        self._api_key = resolved_key
         self._base_url = base_url
         self._timeout = timeout
         self._stream_timeout = stream_timeout
-        self._max_retries = max_retries
+        self._max_retries = safe_retries
 
         self._logger = RodiumAILogger(log_level=log_level)
         self._usage = UsageStats()
@@ -47,7 +57,7 @@ class RodiumAI:
             base_url=base_url,
             timeout=timeout,
             stream_timeout=stream_timeout,
-            max_retries=max_retries,
+            max_retries=safe_retries,
         )
 
         self.chat = Chat(self._http)
@@ -64,7 +74,7 @@ class RodiumAI:
     def logger(self) -> RodiumAILogger:
         return self._logger
 
-    def _get_headers(self) -> dict:
+    def _get_headers(self) -> dict[str, str]:
         return {
             "Authorization": f"Bearer {self._api_key}",
             "X-RodiumAI-SDK": SDK_IDENTIFIER,

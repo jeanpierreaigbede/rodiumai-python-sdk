@@ -30,8 +30,7 @@ coverage.xml
 .DS_Store
 Thumbs.db
 
-# Tests
-tests/
+# Personal test files
 test_reel.py
 
 # Pip

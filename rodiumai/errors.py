@@ -26,7 +26,10 @@ class RodiumAIError(Exception):
         return " | ".join(parts)
 
     def __repr__(self) -> str:
-        return f"{self.__class__.__name__}(code={self.code}, error_code='{self.error_code}', request_id={self.request_id})"
+        return (
+            f"{self.__class__.__name__}(code={self.code}, "
+            f"error_code='{self.error_code}', request_id={self.request_id})"
+        )
 
 
 class InvalidAPIKeyError(RodiumAIError):
@@ -66,7 +69,10 @@ class PermissionDeniedError(RodiumAIError):
             code=403,
             error_code=self.error_code,
             request_id=request_id,
-            fix_suggestion="Verify your API key has the required permissions at https://rodiumai.io/dashboard",
+            fix_suggestion=(
+                "Verify your API key has the required permissions"
+                " at https://rodiumai.io/dashboard"
+            ),
             docs_url="https://docs.rodiumai.io/permissions",
         )
 
@@ -100,7 +106,10 @@ class RateLimitError(RodiumAIError):
             code=429,
             error_code=self.error_code,
             request_id=request_id,
-            fix_suggestion="Retry after the suggested delay. Consider upgrading your plan at https://rodiumai.io/pricing",
+            fix_suggestion=(
+                "Retry after the suggested delay."
+                " Consider upgrading your plan at https://rodiumai.io/pricing"
+            ),
             docs_url="https://docs.rodiumai.io/rate-limits",
         )
 
@@ -114,7 +123,10 @@ class InternalServerError(RodiumAIError):
             code=500,
             error_code=self.error_code,
             request_id=request_id,
-            fix_suggestion="Retry your request. If the problem persists, contact support at https://rodiumai.io/support",
+            fix_suggestion=(
+                "Retry your request. If the problem persists,"
+                " contact support at https://rodiumai.io/support"
+            ),
             docs_url="https://docs.rodiumai.io/troubleshooting",
         )
 
@@ -128,7 +140,7 @@ class ServiceUnavailableError(RodiumAIError):
             code=503,
             error_code=self.error_code,
             request_id=request_id,
-            fix_suggestion="Retry after a few seconds. Check https://status.rodiumai.io for outages.",
+            fix_suggestion="Retry after a few seconds. Check https://status.rodiumai.io for outages.",  # noqa: E501
             docs_url="https://status.rodiumai.io",
         )
 

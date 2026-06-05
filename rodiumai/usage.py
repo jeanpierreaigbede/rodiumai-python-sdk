@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Dict
+from typing import Any, Dict
 
 
 @dataclass
@@ -36,7 +36,7 @@ class UsageStats:
         latency_ms: float,
         prompt_tokens: int = 0,
         completion_tokens: int = 0,
-    ):
+    ) -> None:
         self.total_requests += 1
         if success:
             self.successful_requests += 1
@@ -67,7 +67,7 @@ class UsageStats:
     def consecutive_errors(self) -> int:
         return self._consecutive_errors
 
-    def to_dict(self) -> dict:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "total_requests": self.total_requests,
             "successful_requests": self.successful_requests,
@@ -81,7 +81,7 @@ class UsageStats:
             "requests_by_endpoint": dict(self.requests_by_endpoint),
         }
 
-    def reset(self):
+    def reset(self) -> None:
         self.total_requests = 0
         self.successful_requests = 0
         self.failed_requests = 0

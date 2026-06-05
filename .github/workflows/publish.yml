@@ -1,0 +1,50 @@
+name: Python Publish
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install build dependencies
+        run: |
+          pip install --upgrade pip
+          pip install build twine
+
+      - name: Build package
+        run: python -m build
+
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          password: ${{ secrets.PYPI_API_TOKEN }}
+
+      - name: Tag and release
+        id: tag_release
+        run: |
+          VERSION="v$(python -c "from rodiumai._version import VERSION; print(VERSION)")"
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          git config user.name "RodiumAI CI"
+          git config user.email "dev@rodiumai.io"
+          git tag "$VERSION"
+          git push origin "$VERSION"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ steps.tag_release.outputs.version }}
+          body_path: CHANGELOG.md
+          files: dist/*

@@ -1,3 +1,4 @@
+from ._version import VERSION
 from .client import RodiumAI
 from .errors import (
     InsufficientRODIError,
@@ -9,9 +10,8 @@ from .errors import (
     RateLimitError,
     RodiumAIError,
     ServiceUnavailableError,
-    TimeoutError_ as TimeoutError,
 )
-from ._version import VERSION
+from .errors import TimeoutError_ as TimeoutError
 
 __all__ = [
     "RodiumAI",
