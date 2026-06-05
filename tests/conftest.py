@@ -1,6 +1,70 @@
+import collections
+
+import httpx
 import pytest
+import respx
 
 from rodiumai import RodiumAI
+
+
+class _HttpxMockCompat:
+    def __init__(self):
+        self._response_queues: dict = collections.defaultdict(collections.deque)
+        self._requests: list = []
+
+    def add_response(
+        self,
+        url=None,
+        method=None,
+        json=None,
+        status_code=200,
+        content=None,
+        headers=None,
+    ):
+        key = (url, method)
+        kwargs: dict = {"status_code": status_code, "headers": headers or {}}
+        if content is not None:
+            kwargs["content"] = content
+        elif json is not None:
+            kwargs["json"] = json
+        else:
+            kwargs["content"] = b""
+        resp = httpx.Response(**kwargs)
+        self._response_queues[key].append(("response", resp))
+
+    def add_exception(self, exception, url=None, method=None):
+        key = (url, method)
+        self._response_queues[key].append(("exception", exception))
+
+    def _handle(self, request):
+        self._requests.append(request)
+        for key, queue in self._response_queues.items():
+            url, method = key
+            if url and url not in str(request.url):
+                continue
+            if method and request.method != method:
+                continue
+            if queue:
+                kind, value = queue.popleft()
+                if kind == "exception":
+                    raise value
+                return value
+        return httpx.Response(200, json={})
+
+    def get_request(self):
+        return self._requests[-1] if self._requests else None
+
+    def get_requests(self):
+        return list(self._requests)
+
+
+@pytest.fixture
+def httpx_mock():
+    mock = _HttpxMockCompat()
+    with respx.mock:
+        respx.route().mock(side_effect=mock._handle)
+        yield mock
+        respx.reset()
 
 
 @pytest.fixture

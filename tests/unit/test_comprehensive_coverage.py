@@ -1,14 +1,15 @@
 import pytest
-import os
 
 from rodiumai import RodiumAI
 from rodiumai.errors import (
-    RodiumAIError, InsufficientRODIError, InternalServerError, NetworkError, TimeoutError_
+    InsufficientRODIError,
+    InternalServerError,
+    NetworkError,
+    RodiumAIError,
 )
 from rodiumai.logger import RodiumAILogger
-from rodiumai.resources.images import ImageData, ImagesResponse
-from rodiumai.resources.embeddings import Embedding, EmbeddingUsage, EmbeddingsResponse
-from rodiumai.resources.audio import Transcription, SpeechResponse
+from rodiumai.resources.audio import SpeechResponse, Transcription
+from rodiumai.resources.images import ImagesResponse
 
 
 class TestClientInitEdgeCases:
@@ -37,21 +38,25 @@ class TestClientInitEdgeCases:
 class TestUsageEdgeCases:
     def test_average_latency_no_requests(self):
         from rodiumai.usage import UsageStats
+
         us = UsageStats()
         assert us.average_latency_ms == 0.0
 
     def test_error_rate_no_requests(self):
         from rodiumai.usage import UsageStats
+
         us = UsageStats()
         assert us.error_rate == 0.0
 
     def test_recent_error_rate_empty(self):
         from rodiumai.usage import UsageStats
+
         us = UsageStats()
         assert us.recent_error_rate == 0.0
 
     def test_consecutive_errors_accumulates(self):
         from rodiumai.usage import UsageStats
+
         us = UsageStats()
         us.record_request(success=True, model="auto", endpoint="/chat", latency_ms=10)
         us.record_request(success=False, model="auto", endpoint="/chat", latency_ms=10)
@@ -60,8 +65,16 @@ class TestUsageEdgeCases:
 
     def test_to_dict_includes_all_fields(self):
         from rodiumai.usage import UsageStats
+
         us = UsageStats()
-        us.record_request(success=True, model="auto", endpoint="/chat", latency_ms=10, prompt_tokens=5, completion_tokens=10)
+        us.record_request(
+            success=True,
+            model="auto",
+            endpoint="/chat",
+            latency_ms=10,
+            prompt_tokens=5,
+            completion_tokens=10,
+        )
         d = us.to_dict()
         assert "total_requests" in d
         assert "successful_requests" in d
@@ -73,6 +86,7 @@ class TestUsageEdgeCases:
 
     def test_reset_works(self):
         from rodiumai.usage import UsageStats
+
         us = UsageStats()
         us.record_request(success=True, model="auto", endpoint="/chat", latency_ms=10)
         us.reset()
@@ -81,6 +95,7 @@ class TestUsageEdgeCases:
 
     def test_last_errors_overflow(self):
         from rodiumai.usage import UsageStats
+
         us = UsageStats()
         for _ in range(12):
             us.record_request(success=True, model="auto", endpoint="/chat", latency_ms=10)
@@ -231,6 +246,7 @@ class TestAudioEdgeCases:
                 status_code=503,
             )
         from rodiumai.errors import ServiceUnavailableError
+
         with pytest.raises(ServiceUnavailableError):
             await client.audio.speech.create(
                 model="auto",
@@ -263,14 +279,14 @@ class TestChatStreamOptions:
                 "object": "chat.completion.chunk",
                 "created": 100,
                 "model": "auto",
-                "choices": [
-                    {"index": 0, "delta": {"content": "Hello"}, "finish_reason": None}
-                ],
+                "choices": [{"index": 0, "delta": {"content": "Hello"}, "finish_reason": None}],
             },
         ]
+
         async def mock_stream(*args, **kwargs):
             for c in chunks:
                 yield c
+
         monkeypatch.setattr(client._http, "_stream", mock_stream)
         stream = await client.chat.completions.create(
             model="auto",
@@ -292,10 +308,9 @@ class TestChatStreamOptions:
                 "object": "chat.completion.chunk",
                 "created": 100,
                 "model": "auto",
-                "choices": [
-                    {"index": 0, "delta": {}, "finish_reason": "stop"}
-                ],
+                "choices": [{"index": 0, "delta": {}, "finish_reason": "stop"}],
             }
+
         monkeypatch.setattr(client._http, "_stream", mock_stream)
         stream = await client.chat.completions.create(
             model="auto",
@@ -331,6 +346,7 @@ class TestHTTPEdgeCases:
     @pytest.mark.asyncio
     async def test_network_error(self, httpx_mock, client):
         import httpx
+
         for _ in range(4):
             httpx_mock.add_exception(
                 httpx.NetworkError("Connection refused"),
@@ -345,28 +361,33 @@ class TestHTTPEdgeCases:
 
     def test_mask_key_short(self):
         from rodiumai._http import AsyncHTTPClient
+
         assert AsyncHTTPClient._mask_key("abc") == "****"
 
     def test_mask_key_normal(self):
         from rodiumai._http import AsyncHTTPClient
+
         key = AsyncHTTPClient._mask_key("rdk-abcdefgh-12345678")
         assert key == "rdk-****5678"
 
     def test_get_usage_from_response_full(self):
         from rodiumai._http import AsyncHTTPClient
+
         client = AsyncHTTPClient(api_key="rdk-test", base_url="https://api.rodiumai.io/v1")
-        usage = client._get_usage_from_response({
-            "usage": {"prompt_tokens": 10, "completion_tokens": 20, "total_tokens": 30}
-        })
+        usage = client._get_usage_from_response(
+            {"usage": {"prompt_tokens": 10, "completion_tokens": 20, "total_tokens": 30}}
+        )
         assert usage == {"prompt": 10, "completion": 20, "total": 30}
 
     def test_get_usage_from_response_none(self):
         from rodiumai._http import AsyncHTTPClient
+
         client = AsyncHTTPClient(api_key="rdk-test", base_url="https://api.rodiumai.io/v1")
         assert client._get_usage_from_response({}) is None
 
     def test_get_usage_from_response_string(self):
         from rodiumai._http import AsyncHTTPClient
+
         client = AsyncHTTPClient(api_key="rdk-test", base_url="https://api.rodiumai.io/v1")
         assert client._get_usage_from_response({"usage": "nope"}) is None
 
@@ -407,21 +428,23 @@ class TestBackendErrorMessage:
 class TestClientKeyFormat:
     def test_invalid_format_triggers_warning(self, monkeypatch):
         from rodiumai import RodiumAI
-        import logging
+
         messages = []
         logger = RodiumAILogger("rodiumai", log_level="WARNING")
-        original_log_alert = logger.log_alert
+
         def capture_alert(alert_type, message, **props):
             messages.append((alert_type, message))
+
         logger.log_alert = capture_alert
         with monkeypatch.context() as m:
             m.setattr("rodiumai.client.RodiumAILogger", lambda **kw: logger)
-            client = RodiumAI(api_key="bad key with spaces")
+            RodiumAI(api_key="bad key with spaces")
         assert len(messages) > 0
         assert messages[0][0] == "invalid_api_key_format"
 
     def test_valid_key_no_warning(self):
         from rodiumai import RodiumAI
+
         client = RodiumAI(api_key="rdk-valid-key-12345")
         assert client._api_key == "rdk-valid-key-12345"
 
@@ -451,16 +474,21 @@ class TestStreamEdgeCases:
         class FakeResponse:
             async def __aenter__(self):
                 return self
+
             async def __aexit__(self, *args):
                 pass
+
             @property
             def status_code(self):
                 return 200
+
             @property
             def headers(self):
                 return {"X-Request-ID": "req-1"}
+
             async def aread(self):
                 return b""
+
             async def aiter_lines(self):
                 yield 'data: {"choices":[]}'
                 yield 'data: {"choices":[{"delta":{"content":"ok"}}]}'
@@ -469,8 +497,10 @@ class TestStreamEdgeCases:
         class FakeHttpClient:
             async def __aenter__(self):
                 return self
+
             async def __aexit__(self, *args):
                 pass
+
             def stream(self, method, url, **kwargs):
                 return FakeResponse()
 

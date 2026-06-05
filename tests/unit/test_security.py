@@ -2,7 +2,9 @@
 Security tests — RodiumAI Python SDK
 Covers: API key leakage, injection, input validation, HTTPS enforcement, DoS limits
 """
+
 import pytest
+
 from rodiumai import RodiumAI, RodiumAIError
 from rodiumai.errors import InvalidAPIKeyError
 
@@ -46,7 +48,7 @@ class TestAPIKeyLeakage:
     def test_key_not_in_error_message(self):
         """API key must never appear in error messages or stack traces."""
         try:
-            client = RodiumAI(api_key="rdk-super-secret-key")
+            RodiumAI(api_key="rdk-super-secret-key")
             raise RodiumAIError("test error", code=400)
         except RodiumAIError as e:
             assert "rdk-super-secret-key" not in str(e)
@@ -87,40 +89,47 @@ class TestInputValidation:
         client = RodiumAI(api_key="rdk-test")
         with pytest.raises(Exception, match="messages"):
             import asyncio
-            asyncio.run(client.chat.completions.create(
-                model="openai/gpt-4o-mini",
-                messages=[]
-            ))
+
+            asyncio.run(client.chat.completions.create(model="openai/gpt-4o-mini", messages=[]))
 
     def test_temperature_too_high_raises(self):
         client = RodiumAI(api_key="rdk-test")
         with pytest.raises(Exception):
             import asyncio
-            asyncio.run(client.chat.completions.create(
-                model="openai/gpt-4o-mini",
-                messages=[{"role": "user", "content": "hi"}],
-                temperature=3.0
-            ))
+
+            asyncio.run(
+                client.chat.completions.create(
+                    model="openai/gpt-4o-mini",
+                    messages=[{"role": "user", "content": "hi"}],
+                    temperature=3.0,
+                )
+            )
 
     def test_temperature_negative_raises(self):
         client = RodiumAI(api_key="rdk-test")
         with pytest.raises(Exception):
             import asyncio
-            asyncio.run(client.chat.completions.create(
-                model="openai/gpt-4o-mini",
-                messages=[{"role": "user", "content": "hi"}],
-                temperature=-0.1
-            ))
+
+            asyncio.run(
+                client.chat.completions.create(
+                    model="openai/gpt-4o-mini",
+                    messages=[{"role": "user", "content": "hi"}],
+                    temperature=-0.1,
+                )
+            )
 
     def test_max_tokens_zero_raises(self):
         client = RodiumAI(api_key="rdk-test")
         with pytest.raises(Exception):
             import asyncio
-            asyncio.run(client.chat.completions.create(
-                model="openai/gpt-4o-mini",
-                messages=[{"role": "user", "content": "hi"}],
-                max_tokens=0
-            ))
+
+            asyncio.run(
+                client.chat.completions.create(
+                    model="openai/gpt-4o-mini",
+                    messages=[{"role": "user", "content": "hi"}],
+                    max_tokens=0,
+                )
+            )
 
 
 class TestRetryLimits:

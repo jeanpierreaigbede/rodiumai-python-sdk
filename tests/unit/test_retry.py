@@ -1,6 +1,6 @@
 import pytest
 
-from rodiumai.errors import InternalServerError, InvalidAPIKeyError, ServiceUnavailableError
+from rodiumai.errors import InternalServerError, InvalidAPIKeyError
 
 
 class TestRetryLogic:
@@ -21,6 +21,7 @@ class TestRetryLogic:
     @pytest.mark.asyncio
     async def test_no_retry_on_402(self, httpx_mock, client):
         from rodiumai.errors import InsufficientRODIError
+
         httpx_mock.add_response(
             url="https://api.rodiumai.io/v1/chat/completions",
             method="POST",
@@ -36,6 +37,7 @@ class TestRetryLogic:
     @pytest.mark.asyncio
     async def test_no_retry_on_403(self, httpx_mock, client):
         from rodiumai.errors import PermissionDeniedError
+
         httpx_mock.add_response(
             url="https://api.rodiumai.io/v1/chat/completions",
             method="POST",
@@ -51,6 +53,7 @@ class TestRetryLogic:
     @pytest.mark.asyncio
     async def test_no_retry_on_404(self, httpx_mock, client):
         from rodiumai.errors import ModelNotFoundError
+
         httpx_mock.add_response(
             url="https://api.rodiumai.io/v1/chat/completions",
             method="POST",

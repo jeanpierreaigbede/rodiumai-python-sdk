@@ -1,5 +1,3 @@
-import json
-
 import pytest
 
 from rodiumai.errors import (
@@ -107,6 +105,7 @@ class TestErrorScenarios:
     @pytest.mark.asyncio
     async def test_server_slow_raises_timeout_error(self, httpx_mock, client):
         import httpx
+
         for _ in range(4):
             httpx_mock.add_exception(
                 httpx.TimeoutException("Request timed out"),
@@ -126,7 +125,11 @@ class TestErrorScenarios:
             url="https://api.rodiumai.io/v1/chat/completions",
             method="POST",
             status_code=400,
-            json={"error": {"message": "Cannot read image.png (this model does not support image input)"}},
+            json={
+                "error": {
+                    "message": "Cannot read image.png (this model does not support image input)"
+                }
+            },
         )
         with pytest.raises(RodiumAIError) as exc_info:
             await client.chat.completions.create(

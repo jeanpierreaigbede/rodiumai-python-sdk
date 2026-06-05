@@ -1,5 +1,3 @@
-import pytest
-
 from rodiumai.errors import (
     InsufficientRODIError,
     InternalServerError,

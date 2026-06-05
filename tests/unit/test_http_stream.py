@@ -1,7 +1,7 @@
-import pytest
 import httpx
+import pytest
 
-from rodiumai.errors import RateLimitError, InternalServerError
+from rodiumai.errors import InternalServerError, RateLimitError
 
 
 class TestHTTPRetryParsing:
@@ -45,26 +45,33 @@ class TestStreamDirect:
         class FakeResponse:
             async def __aenter__(self):
                 return self
+
             async def __aexit__(self, *args):
                 pass
+
             @property
             def status_code(self):
                 return 200
+
             @property
             def headers(self):
                 return {"X-Request-ID": "req-stream"}
+
             async def aread(self):
                 return b""
+
             async def aiter_lines(self):
-                yield "data: {\"content\": \"hello\"}"
+                yield 'data: {"content": "hello"}'
                 yield "data: [DONE]"
-                yield "data: {\"content\": \"should not appear\"}"
+                yield 'data: {"content": "should not appear"}'
 
         class FakeHttpClient:
             async def __aenter__(self):
                 return self
+
             async def __aexit__(self, *args):
                 pass
+
             def stream(self, method, url, **kwargs):
                 return FakeResponse()
 
@@ -83,16 +90,21 @@ class TestStreamDirect:
         class FakeErrorResponse:
             async def __aenter__(self):
                 return self
+
             async def __aexit__(self, *args):
                 pass
+
             @property
             def status_code(self):
                 return 500
+
             @property
             def headers(self):
                 return {"X-Request-ID": "req-err"}
+
             async def aread(self):
                 return b"{}"
+
             async def aiter_lines(self):
                 yield ""
                 return
@@ -100,8 +112,10 @@ class TestStreamDirect:
         class FakeHttpClient:
             async def __aenter__(self):
                 return self
+
             async def __aexit__(self, *args):
                 pass
+
             def stream(self, method, url, **kwargs):
                 return FakeErrorResponse()
 

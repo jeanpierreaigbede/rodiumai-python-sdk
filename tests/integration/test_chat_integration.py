@@ -78,6 +78,7 @@ class TestChatIntegration:
     @pytest.mark.asyncio
     async def test_request_body_structure(self, httpx_mock, client, mock_chat_response):
         import json
+
         httpx_mock.add_response(
             url="https://api.rodiumai.io/v1/chat/completions",
             method="POST",

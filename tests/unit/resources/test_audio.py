@@ -1,12 +1,14 @@
 import pytest
 
-from rodiumai.resources.audio import SpeechResponse, Transcription, Transcriptions
+from rodiumai.resources.audio import SpeechResponse, Transcription
 from rodiumai.resources.video import Generations
 
 
 class TestAudio:
     @pytest.mark.asyncio
-    async def test_transcription_returns_text(self, httpx_mock, client, mock_transcription_response):
+    async def test_transcription_returns_text(
+        self, httpx_mock, client, mock_transcription_response
+    ):
         httpx_mock.add_response(
             url="https://api.rodiumai.io/v1/audio/transcriptions",
             method="POST",

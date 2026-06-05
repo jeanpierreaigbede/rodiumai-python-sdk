@@ -1,8 +1,6 @@
-import pytest
 import logging
-import os
 
-from rodiumai.logger import RodiumAILogger, _resolve_log_level, JSONFormatter
+from rodiumai.logger import JSONFormatter, RodiumAILogger, _resolve_log_level
 
 
 class TestLoggerEdgeCases:
@@ -33,10 +31,15 @@ class TestLoggerEdgeCases:
 
     def test_json_formatter_with_props(self):
         import json
+
         record = logging.LogRecord(
-            name="test", level=logging.INFO,
-            pathname="", lineno=0, msg="test msg",
-            args=(), exc_info=None,
+            name="test",
+            level=logging.INFO,
+            pathname="",
+            lineno=0,
+            msg="test msg",
+            args=(),
+            exc_info=None,
         )
         record.props = {"custom": "value"}
         formatter = JSONFormatter()

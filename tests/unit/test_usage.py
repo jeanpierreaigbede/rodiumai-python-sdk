@@ -45,12 +45,20 @@ class TestUsageStats:
     def test_tokens_accumulated_correctly(self):
         stats = UsageStats()
         stats.record_request(
-            success=True, model="auto", endpoint="/test", latency_ms=10,
-            prompt_tokens=50, completion_tokens=50,
+            success=True,
+            model="auto",
+            endpoint="/test",
+            latency_ms=10,
+            prompt_tokens=50,
+            completion_tokens=50,
         )
         stats.record_request(
-            success=True, model="auto", endpoint="/test", latency_ms=10,
-            prompt_tokens=100, completion_tokens=100,
+            success=True,
+            model="auto",
+            endpoint="/test",
+            latency_ms=10,
+            prompt_tokens=100,
+            completion_tokens=100,
         )
         assert stats.total_tokens == 300
         assert stats.total_prompt_tokens == 150

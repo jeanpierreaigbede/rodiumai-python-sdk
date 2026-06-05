@@ -1,10 +1,8 @@
 import pytest
 
-from rodiumai.errors import ModelNotFoundError
 from rodiumai.resources.chat import (
     Chat,
     ChatCompletion,
-    ChatCompletionChunk,
     Choice,
     CompletionUsage,
     Message,

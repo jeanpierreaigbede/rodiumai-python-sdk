@@ -1,5 +1,3 @@
-import os
-
 import pytest
 
 from rodiumai import InvalidAPIKeyError, RodiumAI
