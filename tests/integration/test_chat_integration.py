@@ -72,7 +72,7 @@ class TestChatIntegration:
         )
         request = httpx_mock.get_request()
         assert request.headers["Authorization"] == "Bearer rdk-test-key-12345"
-        assert request.headers["X-RodiumAI-SDK"] == "python/0.1.0"
+        assert request.headers["X-RodiumAI-SDK"] == "python/0.2.0"
         assert request.headers["Content-Type"] == "application/json"
 
     @pytest.mark.asyncio
