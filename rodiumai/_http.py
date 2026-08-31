@@ -2,7 +2,7 @@ import asyncio
 import json as _json
 import random
 import uuid
-from typing import Any, AsyncIterator, Dict, Optional, Tuple, Union
+from typing import Any, AsyncIterator, Dict, Optional, Tuple
 
 import httpx
 
@@ -121,7 +121,12 @@ class AsyncHTTPClient:
                 if response.status_code < 400:
                     return response.status_code, data_out, resp_request_id, None
 
-                error = self._map_response_error(response.status_code, data_out, resp_request_id, response.headers)
+                error = self._map_response_error(
+                    response.status_code,
+                    data_out,
+                    resp_request_id,
+                    response.headers,
+                )
 
                 if response.status_code in (429, 500, 502, 503, 504):
                     if retry_count < self._max_retries:
@@ -201,7 +206,12 @@ class AsyncHTTPClient:
             data_out = _json.loads(response.content)
 
         request_id = response.headers.get("X-Request-ID")
-        error = self._map_response_error(response.status_code, data_out, request_id, response.headers)
+        error = self._map_response_error(
+            response.status_code,
+            data_out,
+            request_id,
+            response.headers,
+        )
         return b"", "", error
 
     def _map_response_error(
@@ -251,7 +261,12 @@ class AsyncHTTPClient:
                 if response.status_code >= 400:
                     body = await response.aread()
                     data: Dict[str, Any] = _json.loads(body) if body else {}
-                    raise self._map_response_error(response.status_code, data, request_id, response.headers)
+                    raise self._map_response_error(
+                        response.status_code,
+                        data,
+                        request_id,
+                        response.headers,
+                    )
 
                 async for line in response.aiter_lines():
                     if line.startswith("data: "):
