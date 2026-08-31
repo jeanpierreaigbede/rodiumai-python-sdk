@@ -1,5 +1,6 @@
 from dataclasses import dataclass
-from typing import Any, Dict, Optional
+from pathlib import Path
+from typing import Any, Dict, Optional, Union
 
 from .._http import AsyncHTTPClient
 
@@ -16,69 +17,83 @@ class SpeechResponse:
 
 
 class Transcriptions:
+    DEFAULT_MODEL = "openai/gpt-4o"
+
     def __init__(self, http_client: AsyncHTTPClient):
         self._http = http_client
 
     async def create(
         self,
         *,
-        model: str = "auto",
+        model: str = DEFAULT_MODEL,
         file: Any,
         language: Optional[str] = None,
         timeout: Optional[float] = None,
+        **kwargs: Any,
     ) -> Transcription:
-        files = {"file": file}
-        data: Dict[str, Any] = {"model": model}
+        upload = self._prepare_file(file)
+        data: Dict[str, Any] = {"model": model, **kwargs}
         if language is not None:
             data["language"] = language
+        data = {k: v for k, v in data.items() if v is not None}
 
-        status_code, response_data, request_id, error = await self._http._request(
-            "POST", "/audio/transcriptions", json_body=data, files=files, timeout=timeout
+        _, response_data, _, error = await self._http._request(
+            "POST",
+            "/audio/transcriptions",
+            files={"file": upload},
+            data=data,
+            timeout=timeout,
         )
         if error:
             raise error
 
         return Transcription(text=response_data.get("text", ""))
 
+    @staticmethod
+    def _prepare_file(file: Any) -> Any:
+        if isinstance(file, (str, Path)):
+            path = Path(file)
+            return (path.name, path.read_bytes())
+        if isinstance(file, bytes):
+            return ("audio.bin", file)
+        return file
+
 
 class Speech:
+    DEFAULT_MODEL = "openai/gpt-4o"
+
     def __init__(self, http_client: AsyncHTTPClient):
         self._http = http_client
 
     async def create(
         self,
         *,
-        model: str = "auto",
+        model: str = DEFAULT_MODEL,
         input: str,
         voice: str = "alloy",
         response_format: Optional[str] = None,
         speed: Optional[float] = None,
         timeout: Optional[float] = None,
+        **kwargs: Any,
     ) -> SpeechResponse:
         body: Dict[str, Any] = {
             "model": model,
             "input": input,
             "voice": voice,
+            **kwargs,
         }
         if response_format is not None:
             body["response_format"] = response_format
         if speed is not None:
             body["speed"] = speed
 
-        status_code, data, request_id, error = await self._http._request(
+        content, content_type, error = await self._http._request_binary(
             "POST", "/audio/speech", json_body=body, timeout=timeout
         )
         if error:
             raise error
 
-        content = data.get("content", b"")
-        if isinstance(content, str):
-            content = content.encode("utf-8")
-
-        return SpeechResponse(
-            content=content,
-            content_type=data.get("content_type", "audio/mpeg"),
-        )
+        return SpeechResponse(content=content, content_type=content_type)
 
 
 class Audio:

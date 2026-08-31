@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "rodiumai"
-version = "0.2.0"
+version = "0.3.0"
 description = "RodiumAI SDK — Unified AI API for Africa"
 readme = "README.md"
 requires-python = ">=3.9"

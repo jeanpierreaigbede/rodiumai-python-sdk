@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Any, AsyncIterator, Dict, List, Optional
+from typing import Any, AsyncIterator, Dict, List, Optional, Union
 
 from .._http import AsyncHTTPClient
 
@@ -54,23 +54,29 @@ class ChatCompletion:
     model: str = ""
     choices: List[Choice] = field(default_factory=list)
     usage: Optional[CompletionUsage] = None
+    cost_rodi: Optional[float] = None
+    routing: Optional[Dict[str, Any]] = None
+    raw: Dict[str, Any] = field(default_factory=dict)
 
 
 class Completions:
+    DEFAULT_MODEL = "openai/gpt-4o"
+
     def __init__(self, http_client: AsyncHTTPClient):
         self._http = http_client
 
     async def create(
         self,
         *,
-        model: str = "auto",
-        messages: List[Dict[str, str]],
+        model: str = DEFAULT_MODEL,
+        messages: List[Dict[str, Any]],
         stream: bool = False,
         temperature: Optional[float] = None,
         max_tokens: Optional[int] = None,
         top_p: Optional[float] = None,
-        stop: Optional[List[str]] = None,
+        stop: Optional[Union[str, List[str]]] = None,
         timeout: Optional[float] = None,
+        **kwargs: Any,
     ) -> Any:
         if not messages:
             raise ValueError("messages must not be empty")
@@ -79,6 +85,7 @@ class Completions:
             "model": model,
             "messages": messages,
             "stream": stream,
+            **kwargs,
         }
         if temperature is not None:
             if temperature < 0 or temperature > 2:
@@ -96,7 +103,7 @@ class Completions:
         if stream:
             return self._stream_create(body, timeout)
 
-        status_code, data, request_id, error = await self._http._request(
+        _, data, _, error = await self._http._request(
             "POST", "/chat/completions", json_body=body, timeout=timeout
         )
         if error:
@@ -126,6 +133,10 @@ class Completions:
                 )
             )
 
+        cost_rodi = data.get("cost_rodi")
+        if cost_rodi is None and isinstance(data.get("rodiumai"), dict):
+            cost_rodi = data["rodiumai"].get("cost_rodi")
+
         return ChatCompletion(
             id=data.get("id", ""),
             object=data.get("object", "chat.completion"),
@@ -133,6 +144,9 @@ class Completions:
             model=data.get("model", model),
             choices=choices,
             usage=usage,
+            cost_rodi=cost_rodi,
+            routing=data.get("routing"),
+            raw=data,
         )
 
     async def _stream_create(
@@ -168,6 +182,25 @@ class Completions:
             )
 
 
-class Chat:
-    def __init__(self, http_client: AsyncHTTPClient):
+class ChatNamespace:
+    """OpenAI-compatible namespace, also callable as flat ``client.chat(...)``."""
+
+    def __init__(self, http_client: AsyncHTTPClient, client: Any):
         self.completions = Completions(http_client)
+        self._client = client
+
+    async def __call__(
+        self,
+        messages: Union[str, List[Dict[str, Any]]],
+        **options: Any,
+    ) -> ChatCompletion:
+        return await self._client._flat_chat(messages, **options)
+
+
+class Chat:
+    def __init__(self, http_client: AsyncHTTPClient, client: Any):
+        self._namespace = ChatNamespace(http_client, client)
+        self.completions = self._namespace.completions
+
+    def __call__(self, *args: Any, **kwargs: Any) -> Any:
+        return self._namespace(*args, **kwargs)

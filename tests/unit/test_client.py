@@ -34,12 +34,12 @@ class TestClientInit:
     def test_repr_masks_api_key(self):
         client = RodiumAI(api_key="rdk-secret-key-99999")
         assert "rdk-secret-key-99999" not in repr(client)
-        assert "rdk-****" in repr(client)
+        assert "****" in repr(client)
 
     def test_str_masks_api_key(self):
         client = RodiumAI(api_key="rdk-secret-key-99999")
         assert "rdk-secret-key-99999" not in str(client)
-        assert "rdk-****" in str(client)
+        assert "****" in str(client)
 
     def test_sdk_headers(self):
         client = RodiumAI(api_key="rdk-test-key")

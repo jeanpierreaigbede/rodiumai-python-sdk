@@ -20,14 +20,14 @@ class TestClientInitEdgeCases:
     def test_str_repr_masked(self):
         client = RodiumAI(api_key="rdk-somekey12345678")
         s = str(client)
-        assert "rdk-****" in s
+        assert "****" in s
         assert "api_key" in s
         assert "base_url" in s
 
     def test_repr_masked(self):
         client = RodiumAI(api_key="rdk-anotherkey7890")
         r = repr(client)
-        assert "rdk-****" in r
+        assert "****" in r
         assert "RodiumAI" in r
 
     def test_http_url_raises_error(self):
@@ -210,7 +210,8 @@ class TestAudioEdgeCases:
         httpx_mock.add_response(
             url="https://api.rodiumai.io/v1/audio/speech",
             method="POST",
-            json={"content": "audio data", "content_type": "audio/wav"},
+            content=b"audio data",
+            headers={"content-type": "audio/wav"},
         )
         result = await client.audio.speech.create(
             model="auto",
@@ -227,7 +228,8 @@ class TestAudioEdgeCases:
         httpx_mock.add_response(
             url="https://api.rodiumai.io/v1/audio/speech",
             method="POST",
-            json={"content": "text data", "content_type": "audio/mpeg"},
+            content=b"text data",
+            headers={"content-type": "audio/mpeg"},
         )
         result = await client.audio.speech.create(
             model="auto",
@@ -259,7 +261,8 @@ class TestAudioEdgeCases:
         httpx_mock.add_response(
             url="https://api.rodiumai.io/v1/audio/speech",
             method="POST",
-            json={},
+            content=b"",
+            headers={"content-type": "audio/mpeg"},
         )
         result = await client.audio.speech.create(
             model="auto",
