@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.3.1 (2026-08-31)
+
+### Documentation
+
+- README: full API reference per endpoint (chat/streaming, images, videos, audio, messages, embeddings, wallet/pricing)
+- Examples for image-to-video, inpainting, multimodal chat, real-time SSE loops, function calling
+
 ## 0.3.0 (2026-08-31)
 
 ### Gateway alignment
