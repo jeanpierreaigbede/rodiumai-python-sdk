@@ -2,7 +2,7 @@ import copy
 import os
 import re
 from pathlib import Path
-from typing import Any, AsyncIterator, Dict, List, Optional, Union
+from typing import Any, AsyncIterator, Dict, List, Optional, Union, cast
 
 from ._http import AsyncHTTPClient
 from ._version import VERSION
@@ -60,9 +60,7 @@ class RodiumAI:
         self._stream_timeout = stream_timeout
         self._max_retries = safe_retries
         self._default_model = (
-            default_model
-            or os.environ.get("RODIUMAI_DEFAULT_MODEL")
-            or DEFAULT_MODEL
+            default_model or os.environ.get("RODIUMAI_DEFAULT_MODEL") or DEFAULT_MODEL
         )
 
         self._pending_model: Optional[str] = None
@@ -134,7 +132,8 @@ class RodiumAI:
     ) -> ChatCompletion:
         built_messages = self._build_messages(messages)
         kwargs = self._chat_kwargs(options)
-        return await self.chat.completions.create(messages=built_messages, **kwargs)
+        result = await self.chat.completions.create(messages=built_messages, **kwargs)
+        return cast(ChatCompletion, result)
 
     async def stream(
         self,

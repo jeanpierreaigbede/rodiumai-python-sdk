@@ -1,4 +1,4 @@
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 
 from .._http import AsyncHTTPClient
 
@@ -12,7 +12,7 @@ class Messages:
         *,
         model: str,
         max_tokens: int,
-        messages: list,
+        messages: List[Dict[str, Any]],
         timeout: Optional[float] = None,
         **kwargs: Any,
     ) -> Dict[str, Any]:

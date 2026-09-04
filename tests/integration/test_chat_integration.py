@@ -1,5 +1,6 @@
 import pytest
 
+from rodiumai._version import VERSION
 from rodiumai.errors import ModelNotFoundError
 from rodiumai.resources.chat import ChatCompletion, ChatCompletionChunk
 
@@ -72,7 +73,7 @@ class TestChatIntegration:
         )
         request = httpx_mock.get_request()
         assert request.headers["Authorization"] == "Bearer rdk-test-key-12345"
-        assert request.headers["X-RodiumAI-SDK"] == "python/0.2.0"
+        assert request.headers["X-RodiumAI-SDK"] == f"python/{VERSION}"
         assert request.headers["Content-Type"] == "application/json"
 
     @pytest.mark.asyncio

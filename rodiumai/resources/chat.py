@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Any, AsyncIterator, Dict, List, Optional, Union
+from typing import Any, AsyncIterator, Dict, List, Optional, Union, cast
 
 from .._http import AsyncHTTPClient
 
@@ -194,7 +194,8 @@ class ChatNamespace:
         messages: Union[str, List[Dict[str, Any]]],
         **options: Any,
     ) -> ChatCompletion:
-        return await self._client._flat_chat(messages, **options)
+        result = await self._client._flat_chat(messages, **options)
+        return cast(ChatCompletion, result)
 
 
 class Chat:

@@ -46,8 +46,6 @@ class TestAudio:
             method="POST",
             json={"created": 1, "data": [{"url": "https://example.com/v.mp4"}]},
         )
-        from rodiumai.resources.video import Generations
-
         gen = Generations(client._http)
         result = await gen.create(model="openai/gpt-4o", prompt="test")
         assert result.data[0].url == "https://example.com/v.mp4"

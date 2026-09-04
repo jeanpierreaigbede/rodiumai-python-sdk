@@ -14,9 +14,7 @@ class Models:
         return data
 
     async def retrieve(self, model_id: str, *, timeout: Optional[float] = None) -> Dict[str, Any]:
-        _, data, _, error = await self._http._request(
-            "GET", f"/models/{model_id}", timeout=timeout
-        )
+        _, data, _, error = await self._http._request("GET", f"/models/{model_id}", timeout=timeout)
         if error:
             raise error
         return data

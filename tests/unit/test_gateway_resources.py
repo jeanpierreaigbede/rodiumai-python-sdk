@@ -382,6 +382,7 @@ class TestRemainingCoverage:
 
         sentinel = object()
         assert Transcriptions._prepare_file(sentinel) is sentinel
+
     async def test_system_prompt_with_message_list(self, httpx_mock, client, mock_chat_response):
         httpx_mock.add_response(
             url="https://api.rodiumai.io/v1/chat/completions",
