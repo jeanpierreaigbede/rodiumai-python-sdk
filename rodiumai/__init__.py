@@ -1,6 +1,7 @@
 from ._version import VERSION
 from .client import RodiumAI
 from .errors import (
+    InsufficientBalanceError,
     InsufficientRODIError,
     InternalServerError,
     InvalidAPIKeyError,
@@ -18,6 +19,7 @@ __all__ = [
     "RodiumAIError",
     "InvalidAPIKeyError",
     "InsufficientRODIError",
+    "InsufficientBalanceError",
     "PermissionDeniedError",
     "ModelNotFoundError",
     "RateLimitError",
