@@ -47,7 +47,7 @@ class InvalidAPIKeyError(RodiumAIError):
 
 
 class InsufficientRODIError(RodiumAIError):
-    error_code = "insufficient_rodi"
+    error_code = "insufficient_balance"
 
     def __init__(self, request_id: Optional[str] = None):
         super().__init__(
@@ -162,6 +162,9 @@ class TimeoutError_(RodiumAIError):
             fix_suggestion="Check your network connection or increase the timeout.",
             docs_url="https://docs.rodiumai.io/timeouts",
         )
+
+
+InsufficientBalanceError = InsufficientRODIError
 
 
 class NetworkError(RodiumAIError):

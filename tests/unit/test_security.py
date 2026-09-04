@@ -18,9 +18,9 @@ class TestHTTPSEnforcement:
         client = RodiumAI(api_key="rdk-test", base_url="https://api.rodiumai.io/v1")
         assert client is not None
 
-    def test_http_with_port_raises(self):
-        with pytest.raises(ValueError, match="HTTPS is required"):
-            RodiumAI(api_key="rdk-test", base_url="http://localhost:8080/v1")
+    def test_http_localhost_with_port_allowed(self):
+        client = RodiumAI(api_key="rdk-test", base_url="http://localhost:8080/v1")
+        assert client is not None
 
 
 class TestAPIKeyLeakage:

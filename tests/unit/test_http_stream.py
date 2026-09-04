@@ -221,26 +221,12 @@ class TestStreamDirect:
     async def test_timeout_retry_then_raises(self, client, monkeypatch):
         call_count = 0
 
-        class FakeTimeoutContext:
-            async def __aenter__(self):
-                nonlocal call_count
-                call_count += 1
-                raise httpx.TimeoutException("timed out")
+        async def fake_request(*args, **kwargs):
+            nonlocal call_count
+            call_count += 1
+            raise httpx.TimeoutException("timed out")
 
-            async def __aexit__(self, *args):
-                pass
-
-        class FakeHttpClient:
-            async def __aenter__(self):
-                return self
-
-            async def __aexit__(self, *args):
-                pass
-
-            def stream(self, method, url, **kwargs):
-                return FakeTimeoutContext()
-
-        monkeypatch.setattr(client._http._client, "stream", FakeHttpClient().stream)
+        monkeypatch.setattr(client._http._client, "request", fake_request)
         with pytest.raises(TimeoutError_):
             await client.chat.completions.create(
                 model="auto",

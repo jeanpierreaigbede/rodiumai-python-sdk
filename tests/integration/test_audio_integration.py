@@ -20,7 +20,8 @@ class TestAudioIntegration:
         httpx_mock.add_response(
             url="https://api.rodiumai.io/v1/audio/speech",
             method="POST",
-            json=mock_speech_response,
+            content=mock_speech_response["content"].encode(),
+            headers={"content-type": mock_speech_response["content_type"]},
         )
         speech = await client.audio.speech.create(
             model="auto",

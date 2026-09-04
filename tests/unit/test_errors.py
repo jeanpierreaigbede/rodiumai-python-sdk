@@ -33,7 +33,7 @@ class TestErrorHierarchy:
     def test_insufficient_rodi(self):
         err = InsufficientRODIError(request_id="req-2")
         assert err.code == 402
-        assert err.error_code == "insufficient_rodi"
+        assert err.error_code == "insufficient_balance"
         assert "RODI" in err.message
 
     def test_permission_denied(self):
@@ -115,7 +115,7 @@ class TestErrorHierarchy:
         err = InsufficientRODIError(request_id="req-xyz")
         assert "InsufficientRODIError" in repr(err)
         assert "402" in repr(err)
-        assert "insufficient_rodi" in repr(err)
+        assert "insufficient_balance" in repr(err)
 
     def test_error_message_contains_fix_suggestion(self):
         err = InvalidAPIKeyError()
@@ -129,7 +129,7 @@ class TestErrorHierarchy:
     def test_map_http_status_402(self):
         err = map_http_status(402, "req-2")
         assert isinstance(err, InsufficientRODIError)
-        assert err.error_code == "insufficient_rodi"
+        assert err.error_code == "insufficient_balance"
 
     def test_map_http_status_403(self):
         err = map_http_status(403, "req-3")

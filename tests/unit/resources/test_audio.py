@@ -22,23 +22,30 @@ class TestAudio:
         assert transcript.text == "Hello, world."
 
     @pytest.mark.asyncio
-    async def test_speech_synthesis_returns_bytes(self, httpx_mock, client, mock_speech_response):
+    async def test_speech_synthesis_returns_bytes(self, httpx_mock, client):
         httpx_mock.add_response(
             url="https://api.rodiumai.io/v1/audio/speech",
             method="POST",
-            json=mock_speech_response,
+            content=b"fake-audio-bytes",
+            headers={"content-type": "audio/mpeg"},
         )
         speech = await client.audio.speech.create(
-            model="auto",
+            model="openai/gpt-4o",
             input="Hello",
             voice="alloy",
         )
         assert isinstance(speech, SpeechResponse)
         assert isinstance(speech.content, bytes)
+        assert speech.content == b"fake-audio-bytes"
         assert speech.content_type == "audio/mpeg"
 
     @pytest.mark.asyncio
-    async def test_video_stub_raises_not_implemented(self):
-        gen = Generations()
-        with pytest.raises(NotImplementedError):
-            await gen.create(model="auto", prompt="test")
+    async def test_video_generations(self, httpx_mock, client):
+        httpx_mock.add_response(
+            url="https://api.rodiumai.io/v1/videos/generations",
+            method="POST",
+            json={"created": 1, "data": [{"url": "https://example.com/v.mp4"}]},
+        )
+        gen = Generations(client._http)
+        result = await gen.create(model="openai/gpt-4o", prompt="test")
+        assert result.data[0].url == "https://example.com/v.mp4"

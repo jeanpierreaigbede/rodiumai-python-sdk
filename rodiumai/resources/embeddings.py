@@ -26,22 +26,26 @@ class EmbeddingsResponse:
 
 
 class Embeddings:
+    DEFAULT_MODEL = "openai/gpt-4o"
+
     def __init__(self, http_client: AsyncHTTPClient):
         self._http = http_client
 
     async def create(
         self,
         *,
-        model: str = "auto",
+        model: str = DEFAULT_MODEL,
         input: Union[str, List[str]],
         timeout: Optional[float] = None,
+        **kwargs: Any,
     ) -> EmbeddingsResponse:
         body: Dict[str, Any] = {
             "model": model,
             "input": input,
+            **kwargs,
         }
 
-        status_code, data, request_id, error = await self._http._request(
+        _, data, _, error = await self._http._request(
             "POST", "/embeddings", json_body=body, timeout=timeout
         )
         if error:
@@ -71,3 +75,21 @@ class Embeddings:
             model=data.get("model", model),
             usage=usage,
         )
+
+
+class EmbeddingsNamespace:
+    def __init__(self, http_client: AsyncHTTPClient, client: Any):
+        self._embeddings = Embeddings(http_client)
+        self._client = client
+
+    async def create(self, **kwargs: Any) -> EmbeddingsResponse:
+        return await self._embeddings.create(**kwargs)
+
+    async def __call__(
+        self,
+        input: Union[str, List[str]],
+        **options: Any,
+    ) -> EmbeddingsResponse:
+        model = options.pop("model", self._client._resolve_model())
+        timeout = options.pop("timeout", None)
+        return await self.create(model=model, input=input, timeout=timeout, **options)
