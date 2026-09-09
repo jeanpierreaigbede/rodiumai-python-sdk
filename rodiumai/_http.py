@@ -245,8 +245,12 @@ class AsyncHTTPClient:
         path: str,
         json_body: Optional[Dict[str, Any]] = None,
         timeout: Optional[float] = None,
+        extra_headers: Optional[Dict[str, str]] = None,
     ) -> AsyncIterator[Dict[str, Any]]:
-        headers = self._get_headers({"Content-Type": "application/json"})
+        base_extra = {"Content-Type": "application/json"}
+        if extra_headers:
+            base_extra.update(extra_headers)
+        headers = self._get_headers(base_extra)
         effective_timeout = timeout if timeout is not None else self._stream_timeout
 
         async with httpx.AsyncClient(timeout=httpx.Timeout(effective_timeout)) as client:

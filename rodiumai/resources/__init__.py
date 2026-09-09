@@ -5,6 +5,7 @@ from .extensions import Extensions
 from .images import Images, ImagesNamespace
 from .messages import Messages, MessagesNamespace
 from .models import Models, ModelsNamespace
+from .responses import Responses, ResponsesNamespace
 from .video import Video, VideoNamespace
 
 __all__ = [
@@ -20,6 +21,8 @@ __all__ = [
     "MessagesNamespace",
     "Models",
     "ModelsNamespace",
+    "Responses",
+    "ResponsesNamespace",
     "Video",
     "VideoNamespace",
 ]

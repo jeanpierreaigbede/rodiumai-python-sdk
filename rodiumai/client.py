@@ -15,6 +15,7 @@ from .resources import (
     ImagesNamespace,
     MessagesNamespace,
     ModelsNamespace,
+    ResponsesNamespace,
     Video,
 )
 from .resources.chat import ChatCompletion, ChatNamespace
@@ -89,6 +90,7 @@ class RodiumAI:
         self.video = Video(self._http, self)
         self.models = ModelsNamespace(self._http)
         self.messages = MessagesNamespace(self._http)
+        self.responses = ResponsesNamespace(self._http)
         self._extensions = Extensions(self._http)
 
     @property
