@@ -184,7 +184,8 @@ class TestMessagesNamespace:
             "messages": [{"role": "user", "content": "Hi"}],
         }
         created = await client.messages.create(**payload)
-        assert created["content"][0]["text"] == "OK"
+        assert created.content[0].text == "OK"
+        assert created.text == "OK"
 
         httpx_mock.add_response(
             url="https://api.rodiumai.io/v1/messages",
@@ -192,7 +193,7 @@ class TestMessagesNamespace:
             json={"content": [{"type": "text", "text": "Callable"}]},
         )
         called = await client.messages(**payload)
-        assert called["content"][0]["text"] == "Callable"
+        assert called.content[0].text == "Callable"
 
 
 class TestEmbeddingsAndImagesCallable:
