@@ -1,5 +1,18 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+
+- Chat: `tool_calls` are now parsed onto `Message.tool_calls` (non-streaming) and
+  `Delta.tool_calls` (streaming) — the README documented `response.choices[0].message.tool_calls`
+  since 0.3.1, but the response parser silently dropped the field.
+
+### Added
+
+- `rodiumai.integrations.langchain.ChatRodiumAI` — optional LangChain `BaseChatModel`
+  adapter with `bind_tools`, for use in LangGraph agents. Install via `pip install rodiumai[langchain]`.
+
 ## 0.3.1 (2026-08-31)
 
 ### Documentation

@@ -5,9 +5,44 @@ from .._http import AsyncHTTPClient
 
 
 @dataclass
+class FunctionCall:
+    name: str = ""
+    arguments: str = ""
+
+
+@dataclass
+class ToolCall:
+    id: str = ""
+    type: str = "function"
+    function: FunctionCall = field(default_factory=FunctionCall)
+    index: Optional[int] = None
+
+
+def _parse_tool_calls(raw: Optional[List[Dict[str, Any]]]) -> Optional[List[ToolCall]]:
+    if not raw:
+        return None
+    calls = []
+    for tc in raw:
+        fn = tc.get("function") or {}
+        calls.append(
+            ToolCall(
+                id=tc.get("id", ""),
+                type=tc.get("type", "function"),
+                index=tc.get("index"),
+                function=FunctionCall(
+                    name=fn.get("name", ""),
+                    arguments=fn.get("arguments", ""),
+                ),
+            )
+        )
+    return calls
+
+
+@dataclass
 class Delta:
     role: Optional[str] = None
     content: Optional[str] = None
+    tool_calls: Optional[List[ToolCall]] = None
 
 
 @dataclass
@@ -30,6 +65,7 @@ class ChatCompletionChunk:
 class Message:
     role: str = ""
     content: Optional[str] = None
+    tool_calls: Optional[List[ToolCall]] = None
 
 
 @dataclass
@@ -128,6 +164,7 @@ class Completions:
                     message=Message(
                         role=msg.get("role", ""),
                         content=msg.get("content"),
+                        tool_calls=_parse_tool_calls(msg.get("tool_calls")),
                     ),
                     finish_reason=c.get("finish_reason"),
                 )
@@ -169,6 +206,7 @@ class Completions:
                         delta=Delta(
                             role=delta_data.get("role"),
                             content=delta_data.get("content"),
+                            tool_calls=_parse_tool_calls(delta_data.get("tool_calls")),
                         ),
                         finish_reason=c.get("finish_reason"),
                     )

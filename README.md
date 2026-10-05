@@ -34,6 +34,7 @@ Official async Python SDK for the [Rodium AI](https://www.rodiumai.io) API — u
 - [Videos (`POST /v1/videos/generations`)](#videos-post-v1videosgenerations)
 - [Audio](#audio)
 - [Anthropic Messages](#anthropic-messages)
+- [LangChain / LangGraph integration](#langchain--langgraph-integration)
 - [Wallet & pricing](#wallet--pricing)
 - [Error handling](#error-handling)
 - [SDK reference](#sdk-reference)
@@ -705,6 +706,42 @@ async for event in stream:
 ```
 
 SDK sends `anthropic-version: 2023-06-01` automatically.
+
+---
+
+## LangChain / LangGraph integration
+
+`rodiumai.integrations.langchain.ChatRodiumAI` wraps the SDK as a LangChain
+`BaseChatModel`, including `bind_tools`, so it drops into LangGraph agents
+(e.g. `langgraph.prebuilt.create_react_agent` / `langchain.agents.create_agent`).
+
+```bash
+pip install "rodiumai[langchain]"
+```
+
+```python
+from rodiumai import RodiumAI
+from rodiumai.integrations.langchain import ChatRodiumAI
+from langgraph.prebuilt import create_react_agent
+from langchain_core.tools import tool
+
+@tool
+def get_weather(city: str) -> str:
+    """Get current weather for a city."""
+    return f"Sunny, 32°C in {city}"
+
+llm = ChatRodiumAI(client=RodiumAI(api_key="rd_sk_..."), model="openai/gpt-4o")
+agent = create_react_agent(llm, tools=[get_weather])
+
+result = await agent.ainvoke(
+    {"messages": [{"role": "user", "content": "What's the weather in Lomé?"}]}
+)
+print(result["messages"][-1].content)
+```
+
+The RodiumAI SDK is async-only, so `ChatRodiumAI` only implements the async
+LangChain entry points — use `await llm.ainvoke(...)` / `await agent.ainvoke(...)`,
+not the sync `.invoke(...)`. Streaming (`.astream(...)`) is not yet supported.
 
 ---
 
