@@ -34,6 +34,28 @@ class TestMessagesCreate:
         assert request.headers.get("x-api-key") == "rdk-test-key-12345"
         assert request.headers.get("anthropic-version") == "2023-06-01"
 
+    @pytest.mark.asyncio
+    async def test_reads_cost_rodi_from_rodiumai_extension(self, httpx_mock, client):
+        httpx_mock.add_response(
+            url="https://api.rodiumai.io/v1/messages",
+            method="POST",
+            json={
+                "id": "msg_2",
+                "content": [{"type": "text", "text": "hi"}],
+                "rodiumai": {"cost_rodi": 1.25},
+            },
+        )
+
+        res = await client.messages(
+            model="anthropic/claude",
+            max_tokens=16,
+            messages=[{"role": "user", "content": "hi"}],
+        )
+
+        assert res.cost_rodi == 1.25
+        assert res.usage is None
+        assert res.model == "anthropic/claude"
+
 
 class TestMessagesStream:
     @pytest.mark.asyncio

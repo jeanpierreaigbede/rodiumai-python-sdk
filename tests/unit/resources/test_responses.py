@@ -38,6 +38,83 @@ class TestResponsesCreate:
         assert res.output_text == "Hello"
         assert res.usage.total_tokens == 6
 
+    @pytest.mark.asyncio
+    async def test_keeps_server_output_text_without_usage(self, httpx_mock, client):
+        httpx_mock.add_response(
+            url="https://api.rodiumai.io/v1/responses",
+            method="POST",
+            json={
+                "id": "resp_2",
+                "output_text": "From server",
+                "output": [
+                    {
+                        "type": "message",
+                        "content": [{"type": "output_text", "text": "ignored"}],
+                    }
+                ],
+                "rodiumai": {"cost_rodi": 0.5},
+            },
+        )
+
+        res = await client.responses.create(model="openai/gpt-4o", input="hi")
+
+        assert res.output_text == "From server"
+        assert res.usage is None
+        assert res.cost_rodi == 0.5
+        assert res.model == "openai/gpt-4o"
+
+    @pytest.mark.asyncio
+    async def test_aggregates_only_output_text_blocks(self, httpx_mock, client):
+        httpx_mock.add_response(
+            url="https://api.rodiumai.io/v1/responses",
+            method="POST",
+            json={
+                "output": [
+                    {
+                        "type": "message",
+                        "content": [
+                            {"type": "refusal", "text": "nope"},
+                            {"type": "output_text", "text": ""},
+                            {"type": "output_text", "text": "yes"},
+                        ],
+                    }
+                ],
+            },
+        )
+
+        res = await client.responses.create(model="openai/gpt-4o", input="hi")
+
+        assert res.output_text == "yes"
+        assert res.output[0].content[0].type == "refusal"
+
+    @pytest.mark.asyncio
+    async def test_raises_mapped_error(self, httpx_mock, client):
+        from rodiumai import ModelNotFoundError
+
+        httpx_mock.add_response(
+            url="https://api.rodiumai.io/v1/responses",
+            method="POST",
+            status_code=404,
+            json={"error": {"message": "unknown model", "code": "model_not_found"}},
+        )
+
+        with pytest.raises(ModelNotFoundError, match="unknown model"):
+            await client.responses.create(model="nope/model", input="hi")
+
+    @pytest.mark.asyncio
+    async def test_namespace_is_callable(self, httpx_mock, client):
+        httpx_mock.add_response(
+            url="https://api.rodiumai.io/v1/responses",
+            method="POST",
+            json={"id": "resp_3", "output_text": "ok"},
+        )
+
+        res = await client.responses(model="openai/gpt-4o", input="hi")
+
+        assert res.id == "resp_3"
+        assert res.output_text == "ok"
+        assert httpx_mock.get_request().method == "POST"
+
 
 class TestResponsesStream:
     @pytest.mark.asyncio
