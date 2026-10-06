@@ -1,3 +1,5 @@
+import json
+
 import pytest
 
 from rodiumai.resources.chat import (
@@ -94,6 +96,75 @@ class TestChatCompletions:
             messages=[{"role": "user", "content": "Hello"}],
         )
         assert response.choices[0].message.tool_calls is None
+
+    @pytest.mark.asyncio
+    async def test_response_message_can_be_sent_back_in_tool_loop(
+        self, httpx_mock, client, mock_chat_response
+    ):
+        url = "https://api.rodiumai.io/v1/chat/completions"
+        httpx_mock.add_response(
+            url=url,
+            method="POST",
+            json={
+                "choices": [
+                    {
+                        "index": 0,
+                        "message": {
+                            "role": "assistant",
+                            "content": None,
+                            "tool_calls": [
+                                {
+                                    "index": 0,
+                                    "id": "call_abc123",
+                                    "type": "function",
+                                    "function": {
+                                        "name": "get_weather",
+                                        "arguments": '{"city": "Lomé"}',
+                                    },
+                                }
+                            ],
+                        },
+                        "finish_reason": "tool_calls",
+                    }
+                ],
+            },
+        )
+        httpx_mock.add_response(url=url, method="POST", json=mock_chat_response)
+
+        user_msg = {"role": "user", "content": "What's the weather in Lomé?"}
+        response = await client.chat([user_msg], tools=[{"type": "function"}])
+        tool_call = response.choices[0].message.tool_calls[0]
+        follow_up = await client.chat(
+            [
+                user_msg,
+                response.choices[0].message,
+                {"role": "tool", "tool_call_id": tool_call.id, "content": '{"temp_c": 32}'},
+            ]
+        )
+
+        assert follow_up.choices[0].message.content == "Hello! How can I help you?"
+        sent = json.loads(httpx_mock.get_request().content)["messages"]
+        assert sent == [
+            user_msg,
+            {
+                "role": "assistant",
+                "content": None,
+                "tool_calls": [
+                    {
+                        "id": "call_abc123",
+                        "type": "function",
+                        "function": {"name": "get_weather", "arguments": '{"city": "Lomé"}'},
+                    }
+                ],
+            },
+            {"role": "tool", "tool_call_id": "call_abc123", "content": '{"temp_c": 32}'},
+        ]
+
+    def test_message_to_dict_without_tool_calls(self):
+        assert Message(role="assistant", content="hi").to_dict() == {
+            "role": "assistant",
+            "content": "hi",
+        }
 
     @pytest.mark.asyncio
     async def test_streaming_chunks_assembled_correctly(self, monkeypatch, client):

@@ -91,13 +91,15 @@ def _rodiumai_message_to_ai_message(message: RodiumAIMessage) -> AIMessage:
         raw_args = tool_call.function.arguments or "{}"
         try:
             args = json.loads(raw_args)
-        except json.JSONDecodeError:
+        except (json.JSONDecodeError, TypeError):
+            args = None
+        if not isinstance(args, dict):
             invalid_tool_calls.append(
                 {
                     "name": tool_call.function.name,
                     "args": raw_args,
                     "id": tool_call.id,
-                    "error": "Model returned invalid JSON arguments.",
+                    "error": "Model returned tool arguments that are not a JSON object.",
                     "type": "invalid_tool_call",
                 }
             )
