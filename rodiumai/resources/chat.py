@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Any, AsyncIterator, Dict, List, Optional, Union, cast
+from typing import Any, AsyncIterator, Dict, List, Optional, Sequence, Union, cast
 
 from .._http import AsyncHTTPClient
 
@@ -67,6 +67,23 @@ class Message:
     content: Optional[str] = None
     tool_calls: Optional[List[ToolCall]] = None
 
+    def to_dict(self) -> Dict[str, Any]:
+        """Request-shaped dict, so a response message can be sent back in a follow-up call."""
+        out: Dict[str, Any] = {"role": self.role, "content": self.content}
+        if self.tool_calls:
+            out["tool_calls"] = [
+                {
+                    "id": tc.id,
+                    "type": tc.type,
+                    "function": {
+                        "name": tc.function.name,
+                        "arguments": tc.function.arguments,
+                    },
+                }
+                for tc in self.tool_calls
+            ]
+        return out
+
 
 @dataclass
 class Choice:
@@ -105,7 +122,7 @@ class Completions:
         self,
         *,
         model: str = DEFAULT_MODEL,
-        messages: List[Dict[str, Any]],
+        messages: Sequence[Union[Dict[str, Any], Message]],
         stream: bool = False,
         temperature: Optional[float] = None,
         max_tokens: Optional[int] = None,
@@ -119,7 +136,7 @@ class Completions:
 
         body: Dict[str, Any] = {
             "model": model,
-            "messages": messages,
+            "messages": [m.to_dict() if isinstance(m, Message) else m for m in messages],
             "stream": stream,
             **kwargs,
         }

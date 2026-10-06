@@ -114,6 +114,25 @@ class TestMessageConversion:
         assert ai_message.invalid_tool_calls[0]["name"] == "get_weather"
         assert ai_message.invalid_tool_calls[0]["args"] == "not json"
 
+    @pytest.mark.parametrize("raw_args", ["[]", "null", '"value"', "42"])
+    def test_rodiumai_message_with_non_object_tool_call_arguments(self, raw_args):
+        message = Message(
+            role="assistant",
+            content=None,
+            tool_calls=[
+                ToolCall(
+                    id="call_1",
+                    type="function",
+                    function=FunctionCall(name="get_weather", arguments=raw_args),
+                )
+            ],
+        )
+        ai_message = _rodiumai_message_to_ai_message(message)
+        assert ai_message.tool_calls == []
+        assert len(ai_message.invalid_tool_calls) == 1
+        assert ai_message.invalid_tool_calls[0]["args"] == raw_args
+        assert "not a JSON object" in ai_message.invalid_tool_calls[0]["error"]
+
 
 class TestChatRodiumAI:
     def _make_llm(self, client, **overrides):

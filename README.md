@@ -716,7 +716,7 @@ SDK sends `anthropic-version: 2023-06-01` automatically.
 (e.g. `langgraph.prebuilt.create_react_agent` / `langchain.agents.create_agent`).
 
 ```bash
-pip install "rodiumai[langchain]"
+pip install "rodiumai[langchain]" langgraph
 ```
 
 ```python

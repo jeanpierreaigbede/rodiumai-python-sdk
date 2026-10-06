@@ -14,11 +14,18 @@
 - Chat: `tool_calls` are now parsed onto `Message.tool_calls` (non-streaming) and
   `Delta.tool_calls` (streaming) — the README documented `response.choices[0].message.tool_calls`
   since 0.3.1, but the response parser silently dropped the field.
+- Chat: a response `Message` can now be passed back as-is in `chat()` /
+  `chat.completions.create()` (it is serialized via `Message.to_dict()`), which makes the
+  documented tool-call round trip work instead of raising `TypeError: ... not JSON serializable`.
+- LangChain: tool arguments that are valid JSON but not an object (`[]`, `null`, `"x"`) are
+  reported in `invalid_tool_calls` instead of failing `AIMessage` validation.
 
 ### Added
 
+- `Message.to_dict()` — request-shaped dict of a response message (`index` dropped from tool calls).
 - `rodiumai.integrations.langchain.ChatRodiumAI` — optional LangChain `BaseChatModel`
-  adapter with `bind_tools`, for use in LangGraph agents. Install via `pip install rodiumai[langchain]`.
+  adapter with `bind_tools`, for use in LangGraph agents. Install via `pip install rodiumai[langchain]`
+  (requires `langchain-core>=0.3`, Pydantic v2).
 - `client.responses.create()` — OpenAI Responses API (`POST /v1/responses`), typed
   `ResponsesResponse` with `output_text`, plus streaming via `stream=True` (`ResponseStreamEvent`).
 - `client.messages.create(stream=True)` — Anthropic SSE streaming yielding `MessageStreamEvent`.
