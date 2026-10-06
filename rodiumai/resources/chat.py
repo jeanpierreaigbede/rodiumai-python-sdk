@@ -1,13 +1,48 @@
 from dataclasses import dataclass, field
-from typing import Any, AsyncIterator, Dict, List, Optional, Union, cast
+from typing import Any, AsyncIterator, Dict, List, Optional, Sequence, Union, cast
 
 from .._http import AsyncHTTPClient
+
+
+@dataclass
+class FunctionCall:
+    name: str = ""
+    arguments: str = ""
+
+
+@dataclass
+class ToolCall:
+    id: str = ""
+    type: str = "function"
+    function: FunctionCall = field(default_factory=FunctionCall)
+    index: Optional[int] = None
+
+
+def _parse_tool_calls(raw: Optional[List[Dict[str, Any]]]) -> Optional[List[ToolCall]]:
+    if not raw:
+        return None
+    calls = []
+    for tc in raw:
+        fn = tc.get("function") or {}
+        calls.append(
+            ToolCall(
+                id=tc.get("id", ""),
+                type=tc.get("type", "function"),
+                index=tc.get("index"),
+                function=FunctionCall(
+                    name=fn.get("name", ""),
+                    arguments=fn.get("arguments", ""),
+                ),
+            )
+        )
+    return calls
 
 
 @dataclass
 class Delta:
     role: Optional[str] = None
     content: Optional[str] = None
+    tool_calls: Optional[List[ToolCall]] = None
 
 
 @dataclass
@@ -30,6 +65,24 @@ class ChatCompletionChunk:
 class Message:
     role: str = ""
     content: Optional[str] = None
+    tool_calls: Optional[List[ToolCall]] = None
+
+    def to_dict(self) -> Dict[str, Any]:
+        """Request-shaped dict, so a response message can be sent back in a follow-up call."""
+        out: Dict[str, Any] = {"role": self.role, "content": self.content}
+        if self.tool_calls:
+            out["tool_calls"] = [
+                {
+                    "id": tc.id,
+                    "type": tc.type,
+                    "function": {
+                        "name": tc.function.name,
+                        "arguments": tc.function.arguments,
+                    },
+                }
+                for tc in self.tool_calls
+            ]
+        return out
 
 
 @dataclass
@@ -69,7 +122,7 @@ class Completions:
         self,
         *,
         model: str = DEFAULT_MODEL,
-        messages: List[Dict[str, Any]],
+        messages: Sequence[Union[Dict[str, Any], Message]],
         stream: bool = False,
         temperature: Optional[float] = None,
         max_tokens: Optional[int] = None,
@@ -83,7 +136,7 @@ class Completions:
 
         body: Dict[str, Any] = {
             "model": model,
-            "messages": messages,
+            "messages": [m.to_dict() if isinstance(m, Message) else m for m in messages],
             "stream": stream,
             **kwargs,
         }
@@ -128,6 +181,7 @@ class Completions:
                     message=Message(
                         role=msg.get("role", ""),
                         content=msg.get("content"),
+                        tool_calls=_parse_tool_calls(msg.get("tool_calls")),
                     ),
                     finish_reason=c.get("finish_reason"),
                 )
@@ -169,6 +223,7 @@ class Completions:
                         delta=Delta(
                             role=delta_data.get("role"),
                             content=delta_data.get("content"),
+                            tool_calls=_parse_tool_calls(delta_data.get("tool_calls")),
                         ),
                         finish_reason=c.get("finish_reason"),
                     )
