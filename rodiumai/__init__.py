@@ -13,6 +13,19 @@ from .errors import (
     ServiceUnavailableError,
 )
 from .errors import TimeoutError_ as TimeoutError
+from .resources.messages import (
+    MessageContentBlock,
+    MessageResponse,
+    MessageStreamEvent,
+    MessageUsage,
+)
+from .resources.responses import (
+    ResponseOutputContent,
+    ResponseOutputItem,
+    ResponsesResponse,
+    ResponseStreamEvent,
+    ResponsesUsage,
+)
 
 __all__ = [
     "RodiumAI",
@@ -28,4 +41,13 @@ __all__ = [
     "TimeoutError",
     "NetworkError",
     "VERSION",
+    "MessageResponse",
+    "MessageStreamEvent",
+    "MessageContentBlock",
+    "MessageUsage",
+    "ResponsesResponse",
+    "ResponseStreamEvent",
+    "ResponseOutputItem",
+    "ResponseOutputContent",
+    "ResponsesUsage",
 ]

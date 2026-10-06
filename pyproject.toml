@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "rodiumai"
-version = "0.3.1"
+version = "0.4.0"
 description = "RodiumAI SDK — Unified AI API for Africa"
 readme = "README.md"
 requires-python = ">=3.9"
@@ -36,11 +36,15 @@ Source = "https://github.com/jeanpierreaigbede/rodiumai-python-sdk"
 Issues = "https://github.com/jeanpierreaigbede/rodiumai-python-sdk/issues"
 
 [project.optional-dependencies]
+langchain = [
+    "langchain-core>=0.2.0",
+]
 dev = [
     "pytest>=7.0",
     "pytest-asyncio>=0.21.0",
     "respx>=0.21.0",
     "pytest-cov>=4.0",
+    "langchain-core>=0.2.0",
     "flake8>=6.0",
     "black>=23.0",
     "mypy>=1.0",
